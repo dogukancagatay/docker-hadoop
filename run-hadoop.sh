@@ -2,6 +2,12 @@
 
 : ${HADOOP_ROLE:?"HADOOP_ROLE is required and should be namenode, datanode or journal."}
 
+CORE_SITE="$HADOOP_HOME/etc/hadoop/core-site.xml"
+HDFS_SITE="$HADOOP_HOME/etc/hadoop/hdfs-site.xml"
+LOG_DIR="/var/log/hadoop/hdfs"
+PID_DIR="/var/run/hadoop/hdfs"
+HADOOP_CONF_DIR="$HADOOP_HOME/etc/hadoop"
+
 addConfig () {
 
     if [ $# -ne 3 ]; then
@@ -16,12 +22,6 @@ addConfig () {
      -r "/configuration/propertyTMP" -v "property" \
      $1
 }
-
-CORE_SITE="$HADOOP_PREFIX/etc/hadoop/core-site.xml"
-HDFS_SITE="$HADOOP_PREFIX/etc/hadoop/hdfs-site.xml"
-LOG_DIR="/var/log/hadoop/hdfs"
-PID_DIR="/var/run/hadoop/hdfs"
-HADOOP_CONF_DIR="/opt/hadoop/etc/hadoop"
 
 if [[ ${HADOOP_ROLE,,} = namenode ]]; then
     source roles/namenode.sh

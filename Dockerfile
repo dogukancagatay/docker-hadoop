@@ -1,40 +1,51 @@
-FROM openjdk:8-jdk-alpine
-MAINTAINER Francis Chuang <francis.chuang@boostport.com>
+FROM debian:9
 
-ENV HADOOP_VER=2.8.2 HADOOP_PREFIX=/opt/hadoop
+ENV HADOOP_VERSION "3.2.1"
+ENV HADOOP_URL "https://www.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz"
 
-RUN apk --no-cache --update add bash ca-certificates gnupg openssl su-exec tar \
- && apk --no-cache --update --repository https://dl-3.alpinelinux.org/alpine/edge/community/ add xmlstarlet \
- && update-ca-certificates \
-\
-# Set up directories
- && mkdir -p $HADOOP_PREFIX \
- && mkdir -p /var/lib/hadoop \
-\
-# Download Hadoop
- && wget -O /tmp/KEYS https://dist.apache.org/repos/dist/release/hadoop/common/KEYS \
- && gpg --import /tmp/KEYS \
- && wget -q -O /tmp/hadoop.tar.gz http://apache.mirror.digitalpacific.com.au/hadoop/common/hadoop-$HADOOP_VER/hadoop-$HADOOP_VER.tar.gz  \
- && wget -O /tmp/hadoop.asc https://dist.apache.org/repos/dist/release/hadoop/common/hadoop-$HADOOP_VER/hadoop-$HADOOP_VER.tar.gz.asc \
- && gpg --verify /tmp/hadoop.asc /tmp/hadoop.tar.gz \
- && tar -xzf /tmp/hadoop.tar.gz -C $HADOOP_PREFIX  --strip-components 1 \
-\
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      openjdk-8-jdk \
+      net-tools \
+      curl \
+      netcat \
+      gnupg \
+      libsnappy-dev \
+      gosu \
+      xmlstarlet \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64/"
+
+RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS && \
+    gpg --import KEYS
+
+RUN set -x \
+    && curl -fSL "$HADOOP_URL" -o /tmp/hadoop.tar.gz \
+    && curl -fSL "$HADOOP_URL.asc" -o /tmp/hadoop.tar.gz.asc \
+    && gpg --verify /tmp/hadoop.tar.gz.asc \
+    && tar -xf /tmp/hadoop.tar.gz -C /opt/ \
+    && rm /tmp/hadoop.tar.gz*
+
+RUN ln -s /opt/hadoop-$HADOOP_VERSION /opt/hadoop && \
+    ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop && \
+    mkdir -p /opt/hadoop-$HADOOP_VERSION/logs /hadoop-data /var/lib/hadoop
+
+ENV HADOOP_HOME=/opt/hadoop
+ENV HADOOP_CONF_DIR=/etc/hadoop
+ENV MULTIHOMED_NETWORK=1
+ENV USER=hadoop
+ENV PATH $HADOOP_HOME/bin/:$PATH
+
 # Set up permissions
- && addgroup -S hadoop \
- && adduser -h $HADOOP_PREFIX -G hadoop -S -D -H -s /bin/false -g hadoop hadoop \
- && chown -R hadoop:hadoop $HADOOP_PREFIX \
- && chown -R hadoop:hadoop /var/lib/hadoop \
-\
-# Clean up
- && apk del gnupg openssl tar \
- && rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
+RUN addgroup --system hadoop && \
+ adduser --system --disabled-password --no-create-home --home $HADOOP_HOME --ingroup hadoop --shell /bin/false --gecos hadoop hadoop && \
+ chown -R hadoop:hadoop /opt/hadoop-$HADOOP_VERSION && \
+ chown -R hadoop:hadoop /var/lib/hadoop
 
-VOLUME ["/var/lib/hadoop"]
-
-ADD ["run-hadoop.sh", "/"]
-ADD ["/roles", "/roles"]
+COPY run-hadoop.sh /
+COPY roles /roles
+RUN chmod +x /run-hadoop.sh /roles/*
 
 #      Namenode              Datanode                     Journalnode
 EXPOSE 8020 9000 50070 50470 50010 50075 50475 1006 50020 8485 8480 8481
-
 CMD ["/run-hadoop.sh"]

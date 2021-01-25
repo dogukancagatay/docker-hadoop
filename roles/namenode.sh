@@ -18,19 +18,22 @@ addConfig $CORE_SITE "ha.zookeeper.parent-znode" /$CLUSTER_NAME
 # Update hdfs-site.xml
 addConfig $HDFS_SITE "dfs.permissions.superusergroup" "hadoop"
 addConfig $HDFS_SITE "dfs.nameservices" $DFS_NAMESERVICE_ID
-addConfig $HDFS_SITE "dfs.ha.namenodes.${DFS_NAMESERVICE_ID}" "nn1,nn2"
 
-: ${DFS_NAMENODE_RPC_ADDRESS_NN1:?"DFS_NAMENODE_RPC_ADDRESS_NN1 is required."}
-addConfig $HDFS_SITE "dfs.namenode.rpc-address.${DFS_NAMESERVICE_ID}.nn1" $DFS_NAMENODE_RPC_ADDRESS_NN1
+: ${DFS_NAMENODES:?"DFS_NAMENODES is required."}
+addConfig $HDFS_SITE "dfs.ha.namenodes.${DFS_NAMESERVICE_ID}" $DFS_NAMENODES
 
-: ${DFS_NAMENODE_RPC_ADDRESS_NN2:?"DFS_NAMENODE_RPC_ADDRESS_NN2 is required."}
-addConfig $HDFS_SITE "dfs.namenode.rpc-address.${DFS_NAMESERVICE_ID}.nn2" $DFS_NAMENODE_RPC_ADDRESS_NN2
+IFS=',' read -ra DFS_NAMENODE <<< "$DFS_NAMENODES"
+for i in "${DFS_NAMENODE[@]}"; do
 
-: ${DFS_NAMENODE_HTTP_ADDRESS_NN1:?"DFS_NAMENODE_HTTP_ADDRESS_NN1 is required."}
-addConfig $HDFS_SITE "dfs.namenode.http-address.${DFS_NAMESERVICE_ID}.nn1" $DFS_NAMENODE_HTTP_ADDRESS_NN1
+    VAR=DFS_NAMENODE_RPC_ADDRESS_${i^^}
+    : ${!VAR:?"${VAR} is required."}
+    addConfig $HDFS_SITE "dfs.namenode.rpc-address.${DFS_NAMESERVICE_ID}.${i}" ${!VAR}
 
-: ${DFS_NAMENODE_HTTP_ADDRESS_NN2:?"DFS_NAMENODE_HTTP_ADDRESS_NN2 is required."}
-addConfig $HDFS_SITE "dfs.namenode.http-address.${DFS_NAMESERVICE_ID}.nn2" $DFS_NAMENODE_HTTP_ADDRESS_NN2
+    VAR=DFS_NAMENODE_HTTP_ADDRESS_${i^^}
+    : ${!VAR:?"${VAR} is required."}
+    addConfig $HDFS_SITE "dfs.namenode.http-address.${DFS_NAMESERVICE_ID}.${i}" ${!VAR}
+
+done
 
 addConfig $HDFS_SITE "dfs.client.failover.proxy.provider.${DFS_NAMESERVICE_ID}" "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
 addConfig $HDFS_SITE "dfs.namenode.name.dir" ${DFS_NAMENODE_NAME_DIR:="file:///var/lib/hadoop/name"}
@@ -69,39 +72,40 @@ done
 if [ -z "$STANDBY" ]; then
 
     echo "Formatting zookeeper"
-    su-exec hadoop $HADOOP_PREFIX/bin/hdfs zkfc -formatZK -nonInteractive
+    gosu hadoop $HADOOP_HOME/bin/hdfs zkfc -formatZK -nonInteractive
 
     if [ ! -f $NAMENODE_FORMATTED_FLAG ]; then
         echo "Formatting namenode..."
-        su-exec hadoop $HADOOP_PREFIX/bin/hdfs namenode -format -nonInteractive -clusterId $CLUSTER_NAME
-        su-exec hadoop touch $NAMENODE_FORMATTED_FLAG
+        gosu hadoop $HADOOP_HOME/bin/hdfs namenode -format -nonInteractive -clusterId $CLUSTER_NAME
+        gosu hadoop touch $NAMENODE_FORMATTED_FLAG
     fi
 fi
 
 # Set this namenode as standby if required
 if [ -n "$STANDBY" ]; then
     echo "Starting namenode in standby mode..."
-    su-exec hadoop $HADOOP_PREFIX/bin/hdfs namenode -bootstrapStandby
+    gosu hadoop $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby
 else
     echo "Starting namenode..."
 fi
 
 trap 'kill %1; kill %2' SIGINT SIGTERM
 
-su-exec hadoop $HADOOP_PREFIX/bin/hdfs --config $HADOOP_CONF_DIR namenode &
+gosu hadoop $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR namenode &
 
 # Start the zkfc
-su-exec hadoop $HADOOP_PREFIX/bin/hdfs --config $HADOOP_CONF_DIR zkfc &
+gosu hadoop $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR zkfc &
 
 # Wait for cluster to be ready
-su-exec hadoop $HADOOP_PREFIX/bin/hdfs dfsadmin -safemode wait
+gosu hadoop $HADOOP_HOME/bin/hdfs dfsadmin -safemode wait
 
 # Create the /tmp directory if it doesn't exist
-su-exec hadoop $HADOOP_PREFIX/bin/hadoop fs -test -d /tmp
+gosu hadoop $HADOOP_HOME/bin/hadoop fs -test -d /tmp
 
 if [ $? != 0 ] && [ -z "$STANDBY" ]; then
-    su-exec hadoop $HADOOP_PREFIX/bin/hadoop fs -mkdir /tmp
-    su-exec hadoop $HADOOP_PREFIX/bin/hadoop fs -chmod -R 1777 /tmp
+    gosu hadoop $HADOOP_HOME/bin/hadoop fs -mkdir /tmp
+    gosu hadoop $HADOOP_HOME/bin/hadoop fs -chmod -R 1777 /tmp
 fi
 
-while true; do sleep 1; done
+# TODO: do not use sleep
+while true; do sleep 30; done

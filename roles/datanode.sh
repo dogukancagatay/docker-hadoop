@@ -18,31 +18,31 @@ addConfig $HDFS_SITE "dfs.nameservices" $DFS_NAMESERVICES
 IFS=',' read -ra DFS_NAMESERVICE <<< "$DFS_NAMESERVICES"
 for i in "${DFS_NAMESERVICE[@]}"; do
 
-    addConfig $HDFS_SITE "dfs.ha.namenodes.${i}" "nn1,nn2"
+    DFS_NAMENODES_VAR=${i^^}_DFS_NAMENODES
+    : ${!DFS_NAMENODES_VAR:?"${DFS_NAMENODES_VAR} is required."}
 
-    VAR=${i^^}_DFS_NAMENODE_RPC_ADDRESS_NN1
-    : ${!VAR:?"${VAR} is required."}
-    addConfig $HDFS_SITE "dfs.namenode.rpc-address.${i}.nn1" ${!VAR}
-
-    VAR=${i^^}_DFS_NAMENODE_RPC_ADDRESS_NN2
-    : ${!VAR:?"${VAR} is required."}
-    addConfig $HDFS_SITE "dfs.namenode.rpc-address.${i}.nn2" ${!VAR}
-
-    VAR=${i^^}_DFS_NAMENODE_HTTP_ADDRESS_NN1
-    : ${!VAR:?"${VAR} is required."}
-    addConfig $HDFS_SITE "dfs.namenode.http-address.${i}.nn1" ${!VAR}
-
-    VAR=${i^^}_DFS_NAMENODE_HTTP_ADDRESS_NN2
-    : ${!VAR:?"${VAR} is required."}
-    addConfig $HDFS_SITE "dfs.namenode.http-address.${i}.nn2" ${!VAR}
-
+    addConfig $HDFS_SITE "dfs.ha.namenodes.${i}" ${!DFS_NAMENODES_VAR}
     addConfig $HDFS_SITE "dfs.client.failover.proxy.provider.${i}" "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+
+    IFS=',' read -ra DFS_NAMENODE <<< "${!DFS_NAMENODES_VAR}"
+    for j in "${DFS_NAMENODE[@]}"; do
+
+        VAR=${i^^}_DFS_NAMENODE_RPC_ADDRESS_${j^^}
+        : ${!VAR:?"${VAR} is required."}
+        addConfig $HDFS_SITE "dfs.namenode.rpc-address.${i}.${j}" ${!VAR}
+
+        VAR=${i^^}_DFS_NAMENODE_HTTP_ADDRESS_${j^^}
+        : ${!VAR:?"${VAR} is required."}
+        addConfig $HDFS_SITE "dfs.namenode.http-address.${i}.${j}" ${!VAR}
+
+    done
 done
 
 addConfig $HDFS_SITE "dfs.datanode.name.dir" ${DFS_DATANODE_NAME_DIR:="file:///var/lib/hadoop/data"}
 [ ! -z "$DFS_DATANODE_FSDATASET_VOLUME_CHOOSING_POLICY" ] && addConfig $HDFS_SITE "dfs.datanode.fsdataset.volume.choosing.policy" "org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy"
 [ ! -z "$DFS_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_THRESHOLD" ] && addConfig $HDFS_SITE "dfs.datanode.available-space-volume-choosing-policy.balanced-space-threshold" $DFS_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_THRESHOLD
-[ ! -z "$DFS_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_PREFRENCE_FRACTION" ] && addConfig $HDFS_SITE "dfs.datanode.available-space-volume-choosing-policy.balanced-space-preference-fraction" $DFS_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_PREFRENCE_FRACTION
+[ ! -z "$DFS_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_PREFRENCE_FRACTION" ] && \
+    addConfig $HDFS_SITE "dfs.datanode.available-space-volume-choosing-policy.balanced-space-preference-fraction" $DFS_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_PREFRENCE_FRACTION
 
 # Create and set the data directories correctly
 IFS=',' read -ra DFS_DATANODE_NAME_DIRS <<< "$DFS_DATANODE_NAME_DIR"
@@ -57,4 +57,4 @@ for i in "${DFS_DATANODE_NAME_DIRS[@]}"; do
 done
 
 # Start the datanode
-exec su-exec hadoop $HADOOP_PREFIX/bin/hdfs --config $HADOOP_CONF_DIR datanode
+exec gosu hadoop $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR datanode
