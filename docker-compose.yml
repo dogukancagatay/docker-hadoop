@@ -2,161 +2,148 @@ version: "3"
 services:
 
   zk:
-    image: zookeeper:3.4.9
+    image: zookeeper:3.6.2
+    hostname: zk
     environment:
-      ZOO_MY_ID: 1
-      ZOO_SERVERS: server.1=zk:2888:3888
+      ZOO_MY_ID: "1"
+      ZOO_SERVERS: "server.1=0.0.0.0:2888:3888;2181"
+      ZOO_ADMINSERVER_ENABLED: "false"
+      ZOO_STANDALONE_ENABLED: "true"
+      ZOO_MAX_CLIENT_CNXNS: "0"
     ports:
-      - 2181
+      - 2181:2181
 
   jn1:
-    build: ./
     image: dcagatay/hadoop:3.2.1
-    container_name: jn1
     hostname: jn1
+    env_file:
+      - hadoop.env
     environment:
-      CLUSTER_NAME: mycluster
       HADOOP_ROLE: journalnode
     ports:
-      - "8480:8480"
+      - 8480:8480
+      - 8485:8485
+    # volumes:
+    #   - ./data/jn1:/var/lib/hadoop
 
   jn2:
     image: dcagatay/hadoop:3.2.1
-    container_name: jn2
     hostname: jn2
+    env_file:
+      - hadoop.env
     environment:
-      CLUSTER_NAME: mycluster
       HADOOP_ROLE: journalnode
     ports:
-      - "8481:8480"
+      - 8481:8480
+      - 8486:8485
+    # volumes:
+    #   - ./data/jn2:/var/lib/hadoop
 
   jn3:
     image: dcagatay/hadoop:3.2.1
-    container_name: jn3
     hostname: jn3
+    env_file:
+      - hadoop.env
     environment:
-      CLUSTER_NAME: mycluster
       HADOOP_ROLE: journalnode
     ports:
-      - "8482:8480"
+      - 8482:8480
+      - 8487:8485
+    # volumes:
+    #   - ./data/jn3:/var/lib/hadoop
 
   nn1:
     image: dcagatay/hadoop:3.2.1
-    container_name: nn1
     hostname: nn1
+    env_file:
+      - hadoop.env
     environment:
-      CLUSTER_NAME: mycluster
-      DFS_NAMESERVICE_ID: ns1
-      DFS_NAMENODE_SHARED_EDITS_DIR: jn1:8485,jn2:8485,jn3:8485
-      DFS_NAMENODES: "nn1,nn2,nn3"
-      DFS_NAMENODE_RPC_ADDRESS_NN1: nn1:8020
-      DFS_NAMENODE_RPC_ADDRESS_NN2: nn2:8020
-      DFS_NAMENODE_RPC_ADDRESS_NN3: nn3:8020
-      DFS_NAMENODE_HTTP_ADDRESS_NN1: nn1:50070
-      DFS_NAMENODE_HTTP_ADDRESS_NN2: nn2:50070
-      DFS_NAMENODE_HTTP_ADDRESS_NN3: nn3:50070
-      HA_ZOOKEEPER_QUORUM: zk:2181
       HADOOP_ROLE: namenode
     ports:
-      - "50070:50070"
+      - 8020:8020
+      - 50070:50070
+      - 8019:8019
+    # volumes:
+    #   - ./data/nn1:/var/lib/hadoop
 
   nn2:
     image: dcagatay/hadoop:3.2.1
-    container_name: nn2
     hostname: nn2
+    env_file:
+      - hadoop.env
     environment:
-      CLUSTER_NAME: mycluster
-      DFS_NAMESERVICE_ID: ns1
-      DFS_NAMENODE_SHARED_EDITS_DIR: jn1:8485,jn2:8485,jn3:8485
-      DFS_NAMENODES: "nn1,nn2,nn3"
-      DFS_NAMENODE_RPC_ADDRESS_NN1: nn1:8020
-      DFS_NAMENODE_RPC_ADDRESS_NN2: nn2:8020
-      DFS_NAMENODE_RPC_ADDRESS_NN3: nn3:8020
-      DFS_NAMENODE_HTTP_ADDRESS_NN1: nn1:50070
-      DFS_NAMENODE_HTTP_ADDRESS_NN2: nn2:50070
-      DFS_NAMENODE_HTTP_ADDRESS_NN3: nn3:50070
-      HA_ZOOKEEPER_QUORUM: zk:2181
       STANDBY: "true"
       HADOOP_ROLE: namenode
     ports:
-      - "50071:50070"
+      - 8021:8020
+      - 50071:50070
+      - 8029:8019
+    # volumes:
+    #   - ./data/nn2:/var/lib/hadoop
 
   nn3:
     image: dcagatay/hadoop:3.2.1
-    container_name: nn3
     hostname: nn3
+    env_file:
+      - hadoop.env
     environment:
-      CLUSTER_NAME: mycluster
-      DFS_NAMESERVICE_ID: ns1
-      DFS_NAMENODE_SHARED_EDITS_DIR: jn1:8485,jn2:8485,jn3:8485
-      DFS_NAMENODES: "nn1,nn2,nn3"
-      DFS_NAMENODE_RPC_ADDRESS_NN1: nn1:8020
-      DFS_NAMENODE_RPC_ADDRESS_NN2: nn2:8020
-      DFS_NAMENODE_RPC_ADDRESS_NN3: nn3:8020
-      DFS_NAMENODE_HTTP_ADDRESS_NN1: nn1:50070
-      DFS_NAMENODE_HTTP_ADDRESS_NN2: nn2:50070
-      DFS_NAMENODE_HTTP_ADDRESS_NN3: nn3:50070
-      HA_ZOOKEEPER_QUORUM: zk:2181
       STANDBY: "true"
       HADOOP_ROLE: namenode
     ports:
-      - "50072:50070"
+      - 8022:8020
+      - 50072:50070
+      - 8039:8019
+    # volumes:
+    #   - ./data/nn3:/var/lib/hadoop
 
   dn1:
     image: dcagatay/hadoop:3.2.1
-    container_name: dn1
     hostname: dn1
+    env_file:
+      - hadoop.env
     environment:
-      DFS_NAMESERVICES: ns1
-      NS1_DFS_NAMENODES: "nn1,nn2,nn3"
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN1: nn1:8020
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN2: nn2:8020
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN3: nn3:8020
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN1: nn1:50070
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN2: nn2:50070
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN3: nn3:50070
       HADOOP_ROLE: datanode
     ports:
-      - "50075:50075"
+      - 9864:9864
+      - 9866:9866
+      - 9867:9867
+    # volumes:
+    #   - ./data/dn1:/hadoop-data
 
   dn2:
     image: dcagatay/hadoop:3.2.1
-    container_name: dn2
     hostname: dn2
+    env_file:
+      - hadoop.env
     environment:
-      DFS_NAMESERVICES: ns1
-      NS1_DFS_NAMENODES: "nn1,nn2,nn3"
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN1: nn1:8020
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN2: nn2:8020
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN3: nn3:8020
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN1: nn1:50070
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN2: nn2:50070
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN3: nn3:50070
       HADOOP_ROLE: datanode
     ports:
-      - "50076:50075"
+      - 9874:9864
+      - 9876:9866
+      - 9877:9867
+    # volumes:
+    #   - ./data/dn2:/hadoop-data
 
   dn3:
     image: dcagatay/hadoop:3.2.1
-    container_name: dn3
     hostname: dn3
+    env_file:
+      - hadoop.env
     environment:
-      DFS_NAMESERVICES: ns1
-      NS1_DFS_NAMENODES: "nn1,nn2,nn3"
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN1: nn1:8020
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN2: nn2:8020
-      NS1_DFS_NAMENODE_RPC_ADDRESS_NN3: nn3:8020
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN1: nn1:50070
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN2: nn2:50070
-      NS1_DFS_NAMENODE_HTTP_ADDRESS_NN3: nn3:50070
       HADOOP_ROLE: datanode
     ports:
-      - "50077:50075"
+      - 9884:9864
+      - 9886:9866
+      - 9887:9867
+    # volumes:
+    #   - ./data/dn3:/hadoop-data
 
   console:
+    build: ./
     image: dcagatay/hadoop:3.2.1
-    container_name: console
     hostname: console
-    command: sleep 100000000
+    entrypoint: /bin/sleep 10000000
+    env_file:
+      - hadoop.env
     environment:
       HADOOP_USER_NAME: "hadoop"
