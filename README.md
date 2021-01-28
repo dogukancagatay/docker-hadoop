@@ -2,6 +2,17 @@
 
 Hadoop (HDFS only) docker image with highly available and multi server deployment capability.
 
+## Labels
+
+- `latest`, `3.3.0`
+- `3.2.2`
+- `3.1.4`
+- `2.10.1`
+- `2.8.2`
+- `2.7.1`
+
+[Docker hub](https://hub.docker.com/r/dcagatay/hadoop)
+
 ## Highlights
 
 - Supports running Hadoop (HDFS only) in distributed HA mode using journal nodes.

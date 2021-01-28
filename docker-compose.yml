@@ -14,7 +14,7 @@ services:
       - 2181:2181
 
   jn1:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: jn1
     env_file:
       - hadoop.env
@@ -27,7 +27,7 @@ services:
     #   - ./data/jn1:/var/lib/hadoop
 
   jn2:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: jn2
     env_file:
       - hadoop.env
@@ -40,7 +40,7 @@ services:
     #   - ./data/jn2:/var/lib/hadoop
 
   jn3:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: jn3
     env_file:
       - hadoop.env
@@ -53,7 +53,7 @@ services:
     #   - ./data/jn3:/var/lib/hadoop
 
   nn1:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: nn1
     env_file:
       - hadoop.env
@@ -67,7 +67,7 @@ services:
     #   - ./data/nn1:/var/lib/hadoop
 
   nn2:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: nn2
     env_file:
       - hadoop.env
@@ -82,7 +82,7 @@ services:
     #   - ./data/nn2:/var/lib/hadoop
 
   nn3:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: nn3
     env_file:
       - hadoop.env
@@ -97,7 +97,7 @@ services:
     #   - ./data/nn3:/var/lib/hadoop
 
   dn1:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: dn1
     env_file:
       - hadoop.env
@@ -111,7 +111,7 @@ services:
     #   - ./data/dn1:/hadoop-data
 
   dn2:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: dn2
     env_file:
       - hadoop.env
@@ -125,7 +125,7 @@ services:
     #   - ./data/dn2:/hadoop-data
 
   dn3:
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: dn3
     env_file:
       - hadoop.env
@@ -140,7 +140,7 @@ services:
 
   console:
     build: ./
-    image: dcagatay/hadoop:3.2.1
+    image: dcagatay/hadoop:latest
     hostname: console
     entrypoint: /bin/sleep 10000000
     env_file:
