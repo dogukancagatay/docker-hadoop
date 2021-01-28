@@ -6,6 +6,7 @@ Hadoop (HDFS only) docker image with highly available and multi server deploymen
 
 - `latest`, `3.3.0`
 - `3.2.2`
+- `3.2.1`
 - `3.1.4`
 - `2.10.1`
 - `2.8.2`
