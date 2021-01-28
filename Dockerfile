@@ -11,7 +11,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
       xmlstarlet \
     && rm -rf /var/lib/apt/lists/*
 
-ENV HADOOP_VERSION 3.2.1
+ENV HADOOP_VERSION 3.2.2
 ENV JAVA_HOME "/usr/lib/jvm/java-8-openjdk-amd64/"
 ENV HADOOP_URL "https://www.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz"
 
