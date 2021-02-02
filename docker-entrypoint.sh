@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-echo "1"
-
 : ${HADOOP_ROLE:?"HADOOP_ROLE is required and should be namenode, datanode or journal."}
 
 CORE_SITE="$HADOOP_HOME/etc/hadoop/core-site.xml"
@@ -52,7 +50,6 @@ chown -R hadoop:hadoop $DFS_JOURNALNODE_EDITS_DIR
 : ${DFS_NAMESERVICES:?"DFS_NAMESERVICES is required."}
 addConfig $HDFS_SITE "dfs.nameservices" $DFS_NAMESERVICES
 
-echo "3"
 # Update core-site.xml
 # Create namenodes config
 IFS=',' read -ra DFS_NAMESERVICE <<< "$DFS_NAMESERVICES"
@@ -70,14 +67,16 @@ for i in "${DFS_NAMESERVICE[@]}"; do
         VAR=${i^^}_DFS_NAMENODE_RPC_ADDRESS_${j^^}
         : ${!VAR:?"${VAR} is required."}
         addConfig $HDFS_SITE "dfs.namenode.rpc-address.${i}.${j}" ${!VAR}
+        addConfig $HDFS_SITE "dfs.namenode.rpc-bind-host.${i}.${j}" "0.0.0.0"
+        addConfig $HDFS_SITE "dfs.namenode.servicerpc-bind-host.${i}.${j}" "0.0.0.0"
 
         VAR=${i^^}_DFS_NAMENODE_HTTP_ADDRESS_${j^^}
         : ${!VAR:?"${VAR} is required."}
         addConfig $HDFS_SITE "dfs.namenode.http-address.${i}.${j}" ${!VAR}
+        addConfig $HDFS_SITE "dfs.namenode.http-bind-host.${i}.${j}" "0.0.0.0"
 
     done
 done
-echo "4"
 
 addConfig $HDFS_SITE "dfs.client.failover.proxy.provider.${DFS_NAMESERVICE_ID}" "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
 addConfig $HDFS_SITE "dfs.namenode.name.dir" ${DFS_NAMENODE_NAME_DIR:="file:///var/lib/hadoop/name"}
@@ -98,6 +97,9 @@ addConfig $HDFS_SITE "dfs.namenode.shared.edits.dir" "qjournal://${DFS_NAMENODE_
 
 addConfig $HDFS_SITE "dfs.ha.fencing.methods" "shell(/bin/true)"
 addConfig $HDFS_SITE "dfs.ha.automatic-failover.enabled" "true"
+
+addConfig $HDFS_SITE "dfs.client.use.datanode.hostname" "true"
+addConfig $HDFS_SITE "dfs.datanode.use.datanode.hostname" "true"
 
 # Create and set the data directories correctly
 IFS=',' read -ra DFS_NAMENODE_NAME_DIRS <<< "$DFS_NAMENODE_NAME_DIR"
@@ -123,8 +125,7 @@ for i in "${DFS_DATANODE_NAME_DIRS[@]}"; do
     fi
 done
 
-echo "5"
-echo "adding zookeeper configuraion"
+echo "Adding zookeeper configuraion"
 IFS=',' read -ra HA_ZOOKEEPER_QUORUMS <<< "$HA_ZOOKEEPER_QUORUM"
 num_zk=${#HA_ZOOKEEPER_QUORUMS[*]}
 
