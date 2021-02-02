@@ -53,12 +53,14 @@ services:
     #   - ./data/jn3:/var/lib/hadoop
 
   nn1:
+    build: ./
     image: dcagatay/hadoop:latest
     hostname: nn1
     env_file:
       - hadoop.env
     environment:
       HADOOP_ROLE: namenode
+      DFS_HA_NAMENODE_ID: nn1
     ports:
       - 8020:8020
       - 50070:50070
@@ -72,8 +74,9 @@ services:
     env_file:
       - hadoop.env
     environment:
-      STANDBY: "true"
       HADOOP_ROLE: namenode
+      DFS_HA_NAMENODE_ID: nn2
+      STANDBY: "true"
     ports:
       - 8021:8020
       - 50071:50070
@@ -87,8 +90,9 @@ services:
     env_file:
       - hadoop.env
     environment:
-      STANDBY: "true"
       HADOOP_ROLE: namenode
+      DFS_HA_NAMENODE_ID: nn3
+      STANDBY: "true"
     ports:
       - 8022:8020
       - 50072:50070
@@ -139,7 +143,6 @@ services:
     #   - ./data/dn3:/hadoop-data
 
   console:
-    build: ./
     image: dcagatay/hadoop:latest
     hostname: console
     entrypoint: /bin/sleep 10000000
