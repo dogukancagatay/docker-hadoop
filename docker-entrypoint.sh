@@ -51,8 +51,15 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
     addConfig $HDFS_SITE "dfs.nameservices" $DFS_NAMESERVICES
 
     if [[ ${HADOOP_ROLE,,} = namenode ]]; then
+
         : ${DFS_HA_NAMENODE_ID:?"DFS_HA_NAMENODE_ID is required for namenodes."}
         addConfig $HDFS_SITE "dfs.ha.namenode.id" $DFS_HA_NAMENODE_ID
+
+    elif [[ ${HADOOP_ROLE,,} = datanode ]]; then
+
+        [ ! -z "$DFS_DATANODE_HOSTNAME" ] && \
+            addConfig $HDFS_SITE "dfs.datanode.hostname" $DFS_DATANODE_HOSTNAME
+
     fi
 
     # Update core-site.xml
