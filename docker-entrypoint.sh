@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
 
-: ${HADOOP_ROLE:?"HADOOP_ROLE is required and should be namenode, datanode or journal."}
+export HADOOP_ROLE=${HADOOP_ROLE:="console"}
+echo "Will run in $HADOOP_ROLE role"
 
 CORE_SITE="$HADOOP_HOME/etc/hadoop/core-site.xml"
 HDFS_SITE="$HADOOP_HOME/etc/hadoop/hdfs-site.xml"
 LOG_DIR="/var/log/hadoop/hdfs"
 PID_DIR="/var/run/hadoop/hdfs"
+
+CLUSTER_NAME=${CLUSTER_NAME:="mycluster"}
+DFS_NAMESERVICE_ID=${DFS_NAMESERVICE_ID:="ns"}
+HA_ZOOKEEPER_QUORUM=${HA_ZOOKEEPER_QUORUM:="zk:2181"}
+DFS_NAMESERVICES=${DFS_NAMESERVICE_ID}
+
+NS_DFS_NAMENODES=${NS_DFS_NAMENODES:="nn"}
+NS_DFS_NAMENODE_RPC_ADDRESS_NN=${NS_DFS_NAMENODE_RPC_ADDRESS_NN:="nn:8020"}
+NS_DFS_NAMENODE_HTTP_ADDRESS_NN=${NS_DFS_NAMENODE_HTTP_ADDRESS_NN:="nn:50070"}
 
 addConfig () {
 
@@ -26,7 +36,7 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
 
     # Update core-site.xml
     : ${CLUSTER_NAME:?"CLUSTER_NAME is required."}
-    : $DFS_NAMESERVICE_ID:?"DFS_NAMESERVICE_ID is required."}
+    : ${DFS_NAMESERVICE_ID:?"DFS_NAMESERVICE_ID is required."}
     addConfig $CORE_SITE "fs.defaultFS" "hdfs://${DFS_NAMESERVICE_ID}"
     addConfig $CORE_SITE "fs.trash.interval" ${FS_TRASH_INTERVAL:=1440}
     addConfig $CORE_SITE "fs.trash.checkpoint.interval" ${FS_TRASH_CHECKPOINT_INTERVAL:=0}
@@ -38,7 +48,6 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
     addConfig $CORE_SITE "ha.zookeeper.parent-znode" /$CLUSTER_NAME
 
     # Update hdfs-site.xml
-    addConfig $HDFS_SITE "dfs.datanode.data.dir" "file:///hadoop-data"
     addConfig $HDFS_SITE "dfs.permissions.superusergroup" "hadoop"
     addConfig $HDFS_SITE "dfs.datanode.max.transfer.threads" 4096
     addConfig $HDFS_SITE "dfs.journalnode.edits.dir" ${DFS_JOURNALNODE_EDITS_DIR:="/var/lib/hadoop/journal"}
@@ -92,7 +101,7 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
 
     addConfig $HDFS_SITE "dfs.client.failover.proxy.provider.${DFS_NAMESERVICE_ID}" "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
     addConfig $HDFS_SITE "dfs.namenode.name.dir" ${DFS_NAMENODE_NAME_DIR:="file:///var/lib/hadoop/name"}
-    addConfig $HDFS_SITE "dfs.datanode.name.dir" ${DFS_DATANODE_NAME_DIR:="file:///var/lib/hadoop/data"}
+    addConfig $HDFS_SITE "dfs.datanode.data.dir" ${DFS_DATANODE_NAME_DIR:="file:///var/lib/hadoop/data"}
     addConfig $HDFS_SITE "dfs.replication" "${DFS_REPLICATION:-3}"
     addConfig $HDFS_SITE "dfs.blocksize" "${DFS_BLOCKSIZE:-128m}"
     addConfig $HDFS_SITE "dfs.namenode.replication.min" "${DFS_NAMENODE_REPLICATION_MIN:-1}"
@@ -138,16 +147,17 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
         fi
     done
 
-    echo "Adding zookeeper configuraion"
     IFS=',' read -ra HA_ZOOKEEPER_QUORUMS <<< "$HA_ZOOKEEPER_QUORUM"
     num_zk=${#HA_ZOOKEEPER_QUORUMS[*]}
 
     IFS=":" read -ra REMOTE_ADDR <<< "${HA_ZOOKEEPER_QUORUMS[$((RANDOM%num_zk))]}"
 
-    until $(nc -z -v -w5 ${REMOTE_ADDR[0]} ${REMOTE_ADDR[1]}); do
-        echo "Waiting for zookeeper to be available..."
-        sleep 2
-    done
+    if [[ ${HADOOP_ROLE,,} != console ]]; then
+        until $(nc -z -v -w5 ${REMOTE_ADDR[0]} ${REMOTE_ADDR[1]}); do
+            echo "Waiting for zookeeper to be available..."
+            sleep 2
+        done
+    fi
 fi
 
 exec "$@"

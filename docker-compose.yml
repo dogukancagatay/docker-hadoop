@@ -5,8 +5,6 @@ services:
     image: zookeeper:3.6.2
     hostname: zk
     environment:
-      ZOO_MY_ID: "1"
-      ZOO_SERVERS: "server.1=0.0.0.0:2888:3888;2181"
       ZOO_ADMINSERVER_ENABLED: "false"
       ZOO_STANDALONE_ENABLED: "true"
       ZOO_MAX_CLIENT_CNXNS: "0"
@@ -112,7 +110,7 @@ services:
       - 9866:9866
       - 9867:9867
     # volumes:
-    #   - ./data/dn1:/hadoop-data
+    #   - ./data/dn1:/var/lib/hadoop
 
   dn2:
     image: dcagatay/hadoop:latest
@@ -126,7 +124,7 @@ services:
       - 9876:9866
       - 9877:9867
     # volumes:
-    #   - ./data/dn2:/hadoop-data
+    #   - ./data/dn2:/var/lib/hadoop
 
   dn3:
     image: dcagatay/hadoop:latest
@@ -140,13 +138,5 @@ services:
       - 9886:9866
       - 9887:9867
     # volumes:
-    #   - ./data/dn3:/hadoop-data
+    #   - ./data/dn3:/var/lib/hadoop
 
-  console:
-    image: dcagatay/hadoop:latest
-    hostname: console
-    entrypoint: /bin/sleep 10000000
-    env_file:
-      - hadoop.env
-    environment:
-      HADOOP_USER_NAME: "hadoop"

@@ -57,6 +57,7 @@ elif [[ ${HADOOP_ROLE,,} = datanode ]]; then
     exec gosu hadoop $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR datanode
 
 elif [[ ${HADOOP_ROLE,,} = journalnode ]]; then
+
     echo "Will run in journalnode mode"
 
     # Start the journalnode
@@ -64,6 +65,5 @@ elif [[ ${HADOOP_ROLE,,} = journalnode ]]; then
     exec gosu hadoop $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR journalnode
 
 else
-    echo "HADOOP_ROLE's value must be one of: namenode, datanode or journalnode"
-    exit 1
+    exec /bin/bash
 fi

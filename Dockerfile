@@ -27,7 +27,7 @@ RUN set -x \
 
 RUN ln -s /opt/hadoop-$HADOOP_VERSION /opt/hadoop && \
     ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop && \
-    mkdir -p /opt/hadoop-$HADOOP_VERSION/logs /hadoop-data /var/lib/hadoop
+    mkdir -p /opt/hadoop-$HADOOP_VERSION/logs /var/lib/hadoop
 
 ENV HADOOP_HOME /opt/hadoop
 ENV HADOOP_CONF_DIR ${HADOOP_HOME}/etc/hadoop
@@ -39,10 +39,13 @@ ENV PATH ${HADOOP_HOME}/bin/:${PATH}
 RUN addgroup --system hadoop && \
  adduser --system --disabled-password --no-create-home --home $HADOOP_HOME --ingroup hadoop --shell /bin/false --gecos hadoop hadoop && \
  chown -R hadoop:hadoop /opt/hadoop-$HADOOP_VERSION && \
- chown -R hadoop:hadoop /var/lib/hadoop /hadoop-data
+ chown -R hadoop:hadoop /var/lib/hadoop
 
 COPY docker-entrypoint.sh run-hadoop.sh /
 RUN chmod +x /run-hadoop.sh /docker-entrypoint.sh
+
+
+VOLUME [ "/var/lib/hadoop" ]
 
 #      Namenode              Datanode                     Journalnode
 EXPOSE 8020 9000 50070 50470 50010 50075 50475 1006 50020 8485 8480 8481
