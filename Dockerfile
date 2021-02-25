@@ -1,8 +1,6 @@
 FROM openjdk:8u282-jdk-buster
 LABEL maintainer="Doğukan Çağatay <dcagatay@gmail.com>"
 
-ARG HADOOP_VERSION_ARG="3.3.0"
-
 RUN apt-get update \
   && apt-get install -y locales \
   && dpkg-reconfigure -f noninteractive locales \
@@ -29,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+ARG HADOOP_VERSION_ARG="3.3.0"
 ENV HADOOP_VERSION ${HADOOP_VERSION_ARG}
 ENV HADOOP_URL "https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz"
 ENV HADOOP_HOME /opt/hadoop
