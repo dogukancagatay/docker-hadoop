@@ -13,7 +13,7 @@ services:
 
   jn1:
     image: dcagatay/hadoop:latest
-    hostname: jn1
+    # hostname: jn1
     env_file:
       - hadoop.env
     environment:
@@ -26,7 +26,7 @@ services:
 
   jn2:
     image: dcagatay/hadoop:latest
-    hostname: jn2
+    # hostname: jn2
     env_file:
       - hadoop.env
     environment:
@@ -39,7 +39,7 @@ services:
 
   jn3:
     image: dcagatay/hadoop:latest
-    hostname: jn3
+    # hostname: jn3
     env_file:
       - hadoop.env
     environment:
@@ -53,7 +53,7 @@ services:
   nn1:
     build: ./
     image: dcagatay/hadoop:latest
-    hostname: nn1
+    # hostname: nn1
     env_file:
       - hadoop.env
     environment:
@@ -68,7 +68,7 @@ services:
 
   nn2:
     image: dcagatay/hadoop:latest
-    hostname: nn2
+    # hostname: nn2
     env_file:
       - hadoop.env
     environment:
@@ -84,7 +84,7 @@ services:
 
   nn3:
     image: dcagatay/hadoop:latest
-    hostname: nn3
+    # hostname: nn3
     env_file:
       - hadoop.env
     environment:
@@ -100,11 +100,12 @@ services:
 
   dn1:
     image: dcagatay/hadoop:latest
-    hostname: dn1
+    # hostname: dn1
     env_file:
       - hadoop.env
     environment:
       HADOOP_ROLE: datanode
+      DFS_DATANODE_HOSTNAME: "dn1"
     ports:
       - 9864:9864
       - 9866:9866
@@ -114,11 +115,12 @@ services:
 
   dn2:
     image: dcagatay/hadoop:latest
-    hostname: dn2
+    # hostname: dn2
     env_file:
       - hadoop.env
     environment:
       HADOOP_ROLE: datanode
+      DFS_DATANODE_HOSTNAME: "dn2"
     ports:
       - 9874:9864
       - 9876:9866
@@ -128,11 +130,12 @@ services:
 
   dn3:
     image: dcagatay/hadoop:latest
-    hostname: dn3
+    # hostname: dn3
     env_file:
       - hadoop.env
     environment:
       HADOOP_ROLE: datanode
+      DFS_DATANODE_HOSTNAME: "dn3"
     ports:
       - 9884:9864
       - 9886:9866

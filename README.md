@@ -27,6 +27,14 @@ Hadoop (HDFS only) docker image with highly available and multi server deploymen
 Check out the [docker-compose.yml](docker-compose.yml) to stand up a distributed HA cluster
 using docker-compose.
 
+## Configuration
+
+There are three different options here:
+
+1. No configuration directory binding, setting just environment variables. (Suitable for just using HDFS)
+1. Setting environment variables with binding `/opt/hadoop/etc/hadoop` or `/etc/hadoop` jjjdirectory w/o overwriting the `HADOOP_CONF_DIR` environment variable. (Suitable for HDFS configuration export needs. e.g. Spark)
+1. Using your own configuration directory without setting confiugration items with environment variables and setting `HADOOP_CONF_DIR` to a different directory (and binding that directory) (e.g. `/config`)
+
 ## Ports
 
 ### namenode

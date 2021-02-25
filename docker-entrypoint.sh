@@ -34,6 +34,12 @@ addConfig () {
 
 if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
 
+    # Incase using a external config directory
+    chown -R hadoop:hadoop "$HADOOP_CONF_DIR"
+
+    # Populate missing configuration files if using default $HADOOP_CONF_DIR
+    cp -r -n ${HADOOP_HOME}/etc/hadoop_default/* ${HADOOP_CONF_DIR}/
+
     # Update core-site.xml
     : ${CLUSTER_NAME:?"CLUSTER_NAME is required."}
     : ${DFS_NAMESERVICE_ID:?"DFS_NAMESERVICE_ID is required."}
