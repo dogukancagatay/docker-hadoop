@@ -33,7 +33,7 @@ ENV HADOOP_URL "https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VE
 ENV HADOOP_HOME /opt/hadoop
 ENV HADOOP_CONF_DIR ${HADOOP_HOME}/etc/hadoop
 ENV MULTIHOMED_NETWORK 1
-ENV USER=hadoop
+ENV USER hadoop
 ENV PATH ${HADOOP_HOME}/bin/:${PATH}
 
 RUN set -x \
@@ -48,17 +48,17 @@ RUN set -x \
     && cp -r /opt/hadoop-${HADOOP_VERSION}/etc/hadoop /opt/hadoop-${HADOOP_VERSION}/etc/hadoop_default \
     && rm -rf ${HADOOP_HOME}/share/doc \
     && mkdir -p /opt/hadoop-${HADOOP_VERSION}/logs /var/lib/hadoop \
-    && addgroup --system hadoop \
+    && addgroup --system ${USER} \
     && adduser \
         --system \
         --disabled-password \
         --no-create-home \
-        --home $HADOOP_HOME \
+        --home ${HADOOP_HOME} \
         --ingroup hadoop \
         --shell /bin/false \
-        --gecos hadoop hadoop \
-    && chown -R hadoop:hadoop /opt/hadoop-${HADOOP_VERSION} \
-    && chown -R hadoop:hadoop /var/lib/hadoop
+        --gecos ${USER} ${USER} \
+    && chown -R ${USER}:${USER} /opt/hadoop-${HADOOP_VERSION} \
+    && chown -R ${USER}:${USER} /var/lib/hadoop
 
 COPY docker-entrypoint.sh run.sh /
 
