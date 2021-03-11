@@ -64,7 +64,7 @@ COPY docker-entrypoint.sh run.sh /
 
 VOLUME [ "/var/lib/hadoop", "/opt/hadoop/etc/hadoop" ]
 
-#      Namenode              Datanode                     Journalnode
-EXPOSE 8020 9000 50070 50470 50010 50075 50475 1006 50020 8485 8480 8481
+#      Namenode              Datanode                     Journalnode    Httpfsnode
+EXPOSE 8020 9000 50070 50470 50010 50075 50475 1006 50020 8485 8480 8481 14000
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
 CMD ["/run.sh"]
