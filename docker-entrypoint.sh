@@ -50,8 +50,8 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
     addConfig $CORE_SITE "ipc.client.connect.max.retries" 400
 
     # HTTPFS impersonation
-    addConfig $CORE_SITE "hadoop.proxyuser.$USER.hosts" "*"
-    addConfig $CORE_SITE "hadoop.proxyuser.$USER.groups" "*"
+    addConfig $CORE_SITE "hadoop.proxyuser.$USER.hosts" '*'
+    addConfig $CORE_SITE "hadoop.proxyuser.$USER.groups" '*'
 
     addConfig $CORE_SITE "hadoop.http.staticuser.user" ${HADOOP_HTTP_STATICUSER_USER:="dr.who"} # hadoop
     addConfig $HDFS_SITE "dfs.checksum.combine.mode" ${DFS_CHECKSUM_COMBINE_MODE:="MD5MD5CRC"} # COMPOSITE_CRC
