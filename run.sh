@@ -64,6 +64,9 @@ elif [[ ${HADOOP_ROLE,,} = journalnode ]]; then
     echo "Starting journalnode..."
     exec gosu hadoop $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR journalnode
 
+elif [[ ${HADOOP_ROLE,,} = httpfsnode ]]; then
+    echo "Will run in httpfsnode mode"
+    gosu hadoop $HADOOP_HOME/bin/hdfs --config $HADOOP_CONF_DIR httpfs
 else
     exec /bin/bash
 fi

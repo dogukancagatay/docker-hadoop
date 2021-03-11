@@ -49,6 +49,9 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
     addConfig $CORE_SITE "ipc.client.connect.retry.interval" 6000
     addConfig $CORE_SITE "ipc.client.connect.max.retries" 400
 
+    addConfig $CORE_SITE "hadoop.http.staticuser.user" ${HADOOP_HTTP_STATICUSER_USER:="dr.who"} # hadoop
+    addConfig $HDFS_SITE "dfs.checksum.combine.mode" ${DFS_CHECKSUM_COMBINE_MODE:="MD5MD5CRC"} # COMPOSITE_CRC
+
     : ${HA_ZOOKEEPER_QUORUM:?"HA_ZOOKEEPER_QUORUM is required."}
     addConfig $CORE_SITE "ha.zookeeper.quorum" $HA_ZOOKEEPER_QUORUM
     addConfig $CORE_SITE "ha.zookeeper.parent-znode" /$CLUSTER_NAME
@@ -158,12 +161,18 @@ if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
 
     IFS=":" read -ra REMOTE_ADDR <<< "${HA_ZOOKEEPER_QUORUMS[$((RANDOM%num_zk))]}"
 
+    if [[ ${HADOOP_ROLE,,} == httpfsnode ]]; then
+        addConfig $CORE_SITE "hadoop.proxyuser.$USER.hosts" "*"
+        addConfig $CORE_SITE "hadoop.proxyuser.$USER.groups" "*"
+    fi
+
     if [[ ${HADOOP_ROLE,,} != console ]]; then
         until $(nc -z -v -w5 ${REMOTE_ADDR[0]} ${REMOTE_ADDR[1]}); do
             echo "Waiting for zookeeper to be available..."
             sleep 2
         done
     fi
+
 fi
 
 exec "$@"
