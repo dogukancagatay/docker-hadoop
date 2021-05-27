@@ -26,10 +26,10 @@ addConfig () {
     fi
 
     xmlstarlet ed -L -s "/configuration" -t elem -n propertyTMP -v "" \
-     -s "/configuration/propertyTMP" -t elem -n name -v $2 \
-     -s "/configuration/propertyTMP" -t elem -n value -v $3 \
+     -s "/configuration/propertyTMP" -t elem -n name -v "$2" \
+     -s "/configuration/propertyTMP" -t elem -n value -v "$3" \
      -r "/configuration/propertyTMP" -v "property" \
-     $1
+     "$1"
 }
 
 if [ $HADOOP_CONF_DIR == ${HADOOP_HOME}/etc/hadoop ]; then
