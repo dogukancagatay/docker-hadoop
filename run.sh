@@ -14,7 +14,7 @@ if [[ ${HADOOP_ROLE,,} = namenode ]]; then
 
         if [ ! -f $NAMENODE_FORMATTED_FLAG ]; then
             echo "Formatting namenode..."
-            gosu hadoop $HADOOP_HOME/bin/hdfs namenode -format -nonInteractive -clusterId $CLUSTER_NAME
+            gosu hadoop $HADOOP_HOME/bin/hdfs namenode -format -force -nonInteractive -clusterId $CLUSTER_NAME
             gosu hadoop touch $NAMENODE_FORMATTED_FLAG
         else
             echo "Will not format namenode: $NAMENODE_FORMATTED_FLAG exists"
@@ -22,9 +22,10 @@ if [[ ${HADOOP_ROLE,,} = namenode ]]; then
     fi
 
     # Set this namenode as standby if required
-    if [ -n "$STANDBY" ]; then
+    if [ -n "$STANDBY" ] and [ ! -f $NAMENODE_FORMATTED_FLAG ]; then
         echo "Starting namenode in standby mode..."
         gosu hadoop $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby
+        gosu hadoop touch $NAMENODE_FORMATTED_FLAG
     else
         echo "Starting namenode..."
     fi
